@@ -7,11 +7,11 @@ def Crear_tablero():
         Tablero.append([" "] * W)
 
 def Imprimir_tablero():
-    for i in range(H):
-        for j in range(W):
-            if [i, j] in Cuerpo_Snake:
-                if [i, j] == Cuerpo_Snake[0]:
-                    Tablero[i][j] = "◉"
+    for i in range(H): #Recorre las filas
+        for j in range(W): #Recorre las columnas
+            if [i, j] in Cuerpo_Snake: #Si la posición está en la lista del cuerpo de la culebrita
+                if [i, j] == Cuerpo_Snake[0]: #Si la posición es la cabeza de la culebrita
+                    Tablero[i][j] = "◉" #Pone la cabeza de la culebrita
                 else:
                     Tablero[i][j] = "●"
             else:
