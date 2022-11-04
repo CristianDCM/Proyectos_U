@@ -3,7 +3,7 @@
 <h2>Snake Python Terminal 🐍</h2>
 
 ---
-Tan Dificil es hacer crecer a esa H**
+Tan dificil es hacer crecer a esa H**
 ````
 # ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ #
 |                     |
