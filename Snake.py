@@ -1,6 +1,21 @@
 import random 
 from pytimedinput import timedInput # pip install pytimedinput
 import os # pip install os-sys
+import Desing
+
+def menuPrincipal():
+    print(Desing.menuPrincipal[0])
+    print("1. Jugar \n2. Tabla de puntuaciones \n3. Salir")
+    opc = input("Elige una opción: ")
+    if opc == "1":
+        main()
+    elif opc == "2":
+        pass
+    elif opc == "3":
+        exit()
+    else:
+        print("Introduce una opción válida")
+        menuPrincipal()
 
 def creartablero():
     global tablero
@@ -76,7 +91,7 @@ def main():
         crecimientoMov()
         if gameOver():
             print("Game Over")
-            break
+            menuPrincipal()
         if cuerpoSnake[0] == posicApple:
             posiccomida()
         print("Score: ", len(cuerpoSnake) - 2)
@@ -88,4 +103,4 @@ comida = False
 movimientoSnake=[1, 0] 
 
 if __name__ == "__main__":
-    main()
+    menuPrincipal()
