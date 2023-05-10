@@ -1,4 +1,6 @@
-import random
+import random 
+from pytimedinput import timedInput # pip install pytimedinput
+import os # pip install os-sys
 
 def Crear_tablero():
     global Tablero
@@ -42,7 +44,7 @@ def Game_Over():
 def Controles():
     global Movimiento_Snake
     Controles = {"W": [-1, 0], "A": [0, -1], "S": [1, 0], "D": [0, 1]}  # Arriba, Izquierda, Abajo, Derecha
-    Press = input("¿Dónde quieres mover la culebrita? (W, A, S, D): ")
+    Press, _ = timedInput("¿Dónde quieres mover la culebrita? (W, A, S, D): ", timeout=0.3) # Introduce una tecla y si no introduce nada, se mueve hacia la misma dirección
     if Press == "w" or Press == "W":
         Movimiento_Snake = Controles["W"]
     elif Press == "a" or Press == "A":
@@ -68,6 +70,7 @@ def Main():
     Crear_tablero()
     Posicion_Comida()
     while True:
+        os.system("cls") # Limpia la pantalla
         Imprimir_tablero()
         Controles()
         Crecimiento_Mov()
@@ -82,7 +85,7 @@ H = 10  # Alto
 W = 10  # Ancho
 Cuerpo_Snake = [[1, 5], [1, 6], [1, 7]]  # Cuerpo Snake(Cabeza, Cuerpo, Cola)
 Comida = False
-Movimiento_Snake=[0, 1]
+Movimiento_Snake=[1, 0] 
 
 if __name__ == "__main__":
     Main()
