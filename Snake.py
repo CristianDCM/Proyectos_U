@@ -34,7 +34,7 @@ def crecimientoMov():
     if cuerpoSnake[0] != posicApple:
         cuerpoSnake.pop()
 
-def Game_Over():
+def gameOver():
     if cuerpoSnake[0][0] == -1 or cuerpoSnake[0][0] == H or cuerpoSnake[0][1] == -1 or cuerpoSnake[0][1] == W: # Si la cabeza de la culebrita toca los bordes
         return True 
     for i in cuerpoSnake[1:]: # Si la cabeza de la culebrita toca su cuerpo 
@@ -74,7 +74,7 @@ def main():
         imprimirTablero()
         controles()
         crecimientoMov()
-        if Game_Over():
+        if gameOver():
             print("Game Over")
             break
         if cuerpoSnake[0] == posicApple:
