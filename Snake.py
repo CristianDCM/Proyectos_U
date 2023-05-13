@@ -2,9 +2,15 @@ import random
 from pytimedinput import timedInput  # pip install pytimedinput
 import os  # pip install os-sys
 import Desing
-
-def menuPrincipal():
-    pass
+import Connection
+import datetime
+import mysql.connector
+import time
+import pandas as pd
+def tableScore():
+    s = pd.read_sql_query("SELECT * FROM pointstable", Connection.connect())
+    s.columns = ['Nombre', 'Puntuación', 'Tiempo', 'Fecha']
+    print(s)
 
 def creartablero():
     global tablero
@@ -31,7 +37,6 @@ def imprimirTablero():
             print(j, end=" ")  # Cuerpo del tablero
         print("║")  # Borde derecho
     print("╚" + "══" * W + "═╝")  # Borde inferior
-
 
 def crecimientoMov():
     nuevaCabeza = [cuerpoSnake[0][0] + movimientoSnake[0],
@@ -76,29 +81,43 @@ def posiccomida():
         posicApple = [random.randint(0, H - 1), random.randint(0, W - 1)]
     tablero[posicApple[0]][posicApple[1]] = "★"
 
+def insercionInfo(nickname, score, time, datetime):
+    try:
+        Connection.insert(Connection.connect(), nickname,
+                          score, time, datetime)
+    except mysql.connector.Error as e:
+        print("Error al insertar datos", e)
+
 def main():
-    print(Desing.menuPrincipal[0]) # Imprime el menú principal
+    print(Desing.menuPrincipal[0])  # Imprime el menú principal
     print("1. Jugar \n2. Tabla de puntuaciones \n3. Salir")
     opc = input("Elige una opción: ")
     if opc == "1":
+        nickname = input("Introduce tu nickname: ")
         creartablero()
         posiccomida()
+        startTime = time.time()
         while True:
             os.system("cls")
             imprimirTablero()
             controles()
             crecimientoMov()
+            timeSeconds = int(time.time() - startTime)
+            date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             if gameOver():
+                print(timeSeconds)
+                insercionInfo(nickname, score, timeSeconds, date)
                 print("Game Over")
-                global cuerpoSnake, movimientoSnake 
-                cuerpoSnake = [[1, 5], [1, 6], [1, 7]] #Reinicia posición
-                movimientoSnake = [1, 0] #Reinicia dirección 
+                global cuerpoSnake, movimientoSnake
+                cuerpoSnake = [[1, 5], [1, 6], [1, 7]]  # Reinicia posición
+                movimientoSnake = [1, 0]  # Reinicia dirección
                 main()
             if cuerpoSnake[0] == posicApple:
                 posiccomida()
-            print("Score: ", len(cuerpoSnake) - 2)
+            score = len(cuerpoSnake) - 2
+            print("Score: ", score)
     elif opc == "2":
-        pass
+        tableScore()
     elif opc == "3":
         exit()
     else:
