@@ -1,24 +1,27 @@
-import random
+import random 
 from pytimedinput import timedInput  # pip install pytimedinput
 import os  # pip install os-sys
 import Desing
 import Connection
 import datetime
-import mysql.connector
 import time
 import pandas as pd
-def tableScore():
-    s = pd.read_sql_query("SELECT * FROM pointstable", Connection.connect())
-    s.columns = ['Nombre', 'Puntuación', 'Tiempo', 'Fecha']
-    print(s)
+import sqlalchemy as db 
 
-def creartablero():
+
+def displayScoreTable():  # Muestra la tabla de puntuaciones
+    connection = Connection.connect()
+    df = pd.read_sql_table('pointstable', connection)
+    print(df)
+
+def createBoard():  # Crea el tablero
     global tablero
     tablero = []
     for i in range(H):
         tablero.append([" "] * W)
 
-def imprimirTablero():
+
+def printBoard():  # Imprime el tablero
     for i in range(H):  # Recorre las filas
         for j in range(W):  # Recorre las columnas
             if [i, j] in cuerpoSnake:  # Si la posición está en la lista del cuerpo de snake
@@ -38,14 +41,16 @@ def imprimirTablero():
         print("║")  # Borde derecho
     print("╚" + "══" * W + "═╝")  # Borde inferior
 
-def crecimientoMov():
+
+def snakeGrowthMove():  # Mueve snake
     nuevaCabeza = [cuerpoSnake[0][0] + movimientoSnake[0],
                    cuerpoSnake[0][1] + movimientoSnake[1]]
     cuerpoSnake.insert(0, nuevaCabeza)
     if cuerpoSnake[0] != posicApple:
         cuerpoSnake.pop()
 
-def gameOver():
+
+def isGameOver():  # Comprueba si el juego ha terminado
     # Si la cabeza de la culebrita toca los bordes
     if cuerpoSnake[0][0] == -1 or cuerpoSnake[0][0] == H or cuerpoSnake[0][1] == -1 or cuerpoSnake[0][1] == W:
         return True
@@ -53,76 +58,84 @@ def gameOver():
         if cuerpoSnake[0] == i:
             return True
 
-def controles():
+
+def getControls():  # Obtiene los controles
     global movimientoSnake
-    controles = {"W": [-1, 0], "A": [0, -1], "S": [1, 0],
-                 "D": [0, 1]}  # Arriba, Izquierda, Abajo, Derecha
+    getControls = {"W": [-1, 0], "A": [0, -1], "S": [1, 0],
+                   "D": [0, 1]}  # Arriba, Izquierda, Abajo, Derecha
     # Introduce una tecla y si no introduce nada, se mueve hacia la misma dirección
     press, _ = timedInput(
         "¿Dónde quieres mover la culebrita? (W, A, S, D): ", timeout=0.3)
     if press == "w" or press == "W":
-        movimientoSnake = controles["W"]
+        movimientoSnake = getControls["W"]
     elif press == "a" or press == "A":
-        movimientoSnake = controles["A"]
+        movimientoSnake = getControls["A"]
     elif press == "s" or press == "S":
-        movimientoSnake = controles["S"]
+        movimientoSnake = getControls["S"]
     elif press == "d" or press == "D":
-        movimientoSnake = controles["D"]
+        movimientoSnake = getControls["D"]
     else:
         if press == "":
             pass
         else:
             print("Introduce una tecla válida")
 
-def posiccomida():
+
+def generateFoodPosition():  # Genera la posición de la comida
     global posicApple
     posicApple = [random.randint(0, H - 1), random.randint(0, W - 1)]
     while posicApple in cuerpoSnake:
         posicApple = [random.randint(0, H - 1), random.randint(0, W - 1)]
     tablero[posicApple[0]][posicApple[1]] = "★"
 
-def insercionInfo(nickname, score, time, datetime):
-    try:
-        Connection.insert(Connection.connect(), nickname,
-                          score, time, datetime)
-    except mysql.connector.Error as e:
-        print("Error al insertar datos", e)
 
-def main():
-    print(Desing.menuPrincipal[0])  # Imprime el menú principal
+# Inserta la información de la puntuación
+def insertScoreInfo(nickname, score, time, datetime):
+    try:
+        #insertar en la base de datos los datos con sqlalchemy
+        connection = Connection.connect()
+        query = db.insert('pointstable').values(nickname=nickname, score=score, time=time, fecha=datetime)
+        ResultProxy = connection.execute(query)
+        return ResultProxy
+    except Exception as e:
+        print("Error: ", e)
+
+
+def snakeGameMain():  # Función principal del juego
+    print(Desing.menuPrincipal[0])
     print("1. Jugar \n2. Tabla de puntuaciones \n3. Salir")
     opc = input("Elige una opción: ")
     if opc == "1":
         nickname = input("Introduce tu nickname: ")
-        creartablero()
-        posiccomida()
+        createBoard()
+        generateFoodPosition()
         startTime = time.time()
         while True:
             os.system("cls")
-            imprimirTablero()
-            controles()
-            crecimientoMov()
+            printBoard()
+            getControls()
+            snakeGrowthMove()
             timeSeconds = int(time.time() - startTime)
             date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            if gameOver():
-                print(timeSeconds)
-                insercionInfo(nickname, score, timeSeconds, date)
-                print("Game Over")
+            if isGameOver():
                 global cuerpoSnake, movimientoSnake
+                score = (len(cuerpoSnake) - 3) * 10
+                print(f"Score: {score}" + "\n" +
+                      f"Time: {timeSeconds} seconds")
+                insertScoreInfo(nickname, score, timeSeconds, date)
                 cuerpoSnake = [[1, 5], [1, 6], [1, 7]]  # Reinicia posición
                 movimientoSnake = [1, 0]  # Reinicia dirección
-                main()
+                snakeGameMain()
             if cuerpoSnake[0] == posicApple:
-                posiccomida()
-            score = len(cuerpoSnake) - 2
-            print("Score: ", score)
+                generateFoodPosition()
     elif opc == "2":
-        tableScore()
+        displayScoreTable()
     elif opc == "3":
         exit()
     else:
         print("Introduce una opción válida")
-        main()
+        snakeGameMain()
+
 
 H = 10  # Alto
 W = 10  # Ancho
@@ -131,4 +144,4 @@ comida = False
 movimientoSnake = [1, 0]
 
 if __name__ == "__main__":
-    main()
+    snakeGameMain()
