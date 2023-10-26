@@ -1,25 +1,36 @@
 import random 
-from pytimedinput import timedInput  # pip install pytimedinput
-import os  # pip install os-sys
+from pytimedinput import timedInput  
+import os  
 import Desing
 import Connection
-import datetime
-import time
+import datetime 
+import time 
 import pandas as pd
-import sqlalchemy as db 
+import mysql.connector
 
+connection = Connection.connect()
+cursor = connection.cursor() 
 
 def displayScoreTable():  # Muestra la tabla de puntuaciones
-    connection = Connection.connect()
-    df = pd.read_sql_table('pointstable', connection)
+    cursor.execute("SELECT * FROM pointstable ORDER BY score DESC")
+    result = cursor.fetchall()
+    df = pd.DataFrame(result, columns=['ID','Nombre', 'Score', 'Time', 'Fecha - Hora'])
     print(df)
+    print("1. Volver al menú principal \n2. Salir")
+    opc = input("Elige una opción: ")
+    if opc == "1":
+        snakeGameMain()
+    elif opc == "2":
+        exit()
+    else:
+        print("Introduce una opción válida")
+        displayScoreTable()
 
 def createBoard():  # Crea el tablero
     global tablero
     tablero = []
     for i in range(H):
         tablero.append([" "] * W)
-
 
 def printBoard():  # Imprime el tablero
     for i in range(H):  # Recorre las filas
@@ -41,14 +52,12 @@ def printBoard():  # Imprime el tablero
         print("║")  # Borde derecho
     print("╚" + "══" * W + "═╝")  # Borde inferior
 
-
 def snakeGrowthMove():  # Mueve snake
     nuevaCabeza = [cuerpoSnake[0][0] + movimientoSnake[0],
                    cuerpoSnake[0][1] + movimientoSnake[1]]
     cuerpoSnake.insert(0, nuevaCabeza)
     if cuerpoSnake[0] != posicApple:
         cuerpoSnake.pop()
-
 
 def isGameOver():  # Comprueba si el juego ha terminado
     # Si la cabeza de la culebrita toca los bordes
@@ -57,7 +66,6 @@ def isGameOver():  # Comprueba si el juego ha terminado
     for i in cuerpoSnake[1:]:  # Si la cabeza de la culebrita toca su cuerpo
         if cuerpoSnake[0] == i:
             return True
-
 
 def getControls():  # Obtiene los controles
     global movimientoSnake
@@ -80,7 +88,6 @@ def getControls():  # Obtiene los controles
         else:
             print("Introduce una tecla válida")
 
-
 def generateFoodPosition():  # Genera la posición de la comida
     global posicApple
     posicApple = [random.randint(0, H - 1), random.randint(0, W - 1)]
@@ -88,18 +95,17 @@ def generateFoodPosition():  # Genera la posición de la comida
         posicApple = [random.randint(0, H - 1), random.randint(0, W - 1)]
     tablero[posicApple[0]][posicApple[1]] = "★"
 
-
 # Inserta la información de la puntuación
 def insertScoreInfo(nickname, score, time, datetime):
     try:
-        #insertar en la base de datos los datos con sqlalchemy
-        connection = Connection.connect()
-        query = db.insert('pointstable').values(nickname=nickname, score=score, time=time, fecha=datetime)
-        ResultProxy = connection.execute(query)
+        query = "INSERT INTO pointstable(id, nickname, score, time, datetime) VALUES (NULL, %s, %s, %s, %s)" 
+        values = (nickname, score, time, datetime)
+        cursor.execute(query, values)
+        connection.commit()
+        ResultProxy = cursor.fetchall()
         return ResultProxy
     except Exception as e:
-        print("Error: ", e)
-
+        print("Error al insertar: ", e)
 
 def snakeGameMain():  # Función principal del juego
     print(Desing.menuPrincipal[0])
@@ -125,7 +131,7 @@ def snakeGameMain():  # Función principal del juego
                 insertScoreInfo(nickname, score, timeSeconds, date)
                 cuerpoSnake = [[1, 5], [1, 6], [1, 7]]  # Reinicia posición
                 movimientoSnake = [1, 0]  # Reinicia dirección
-                snakeGameMain()
+                snakeGameMain() 
             if cuerpoSnake[0] == posicApple:
                 generateFoodPosition()
     elif opc == "2":
@@ -135,7 +141,6 @@ def snakeGameMain():  # Función principal del juego
     else:
         print("Introduce una opción válida")
         snakeGameMain()
-
 
 H = 10  # Alto
 W = 10  # Ancho
